@@ -169,7 +169,6 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
       "touch /tmp/ipsec.conf",
       "touch /tmp/ipsec.secrets",
       "touch /tmp/sysctl.conf",
-      "sudo systemctl restart networking.service &",
     ]
   }
 
@@ -198,7 +197,7 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
       "sudo mv /tmp/ipsec.conf /etc/ipsec.conf",
       "sudo mv /tmp/ipsec.secrets /etc/ipsec.secrets",
       "sudo mv /tmp/sysctl.conf /etc/sysctl.conf",
-      "sudo systemctl restart strongswan.service &",
+      "sudo reboot now &",
     ]
   }
 
