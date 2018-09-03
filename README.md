@@ -29,8 +29,10 @@ This one will have initially a server to simulate a client behind the StrongSwan
 > The public key is needed to provision all linux servers, the private key is needed for Terraform to initially install and configure StrongSwan.
 
 - Run `terraform plan` to see what will happen and then `terraform apply`
+- Reboot the StrongSwan server ```sudo reboot now```
+- Login to the StrongSwan server and make sure the connection is up ```sudo ipsec status```
 
-> I recommend running it once before changing to much
+> I recommend running it once before changing too much
 
 For bugs open an issue and for recomendations fork and open a pull request.
 
