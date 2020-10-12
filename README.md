@@ -35,7 +35,7 @@ This one will have initially a server to simulate a client behind the StrongSwan
 
 > Keey in mind, the username for the StrongSwan is ```strongswanuser``` however the username for the client servers is ```testadmin```
 
-- login to one of the clients from the StrongSwan server (no public ip), and ping the other one.
+- login to one of the clients (you will need to copy the private Key used above) from the StrongSwan server (no public ip), and ping the other one.
 
 > I recommend running it once before changing too much
 
