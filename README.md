@@ -1,3 +1,4 @@
+![Alt text](img/visio_diagram.jpg?raw=true "Overview Diagram")
 # azure-terraform-vpngw-strongswan
 Terraform Repo to build Azure VPN Gateway, and connect it with StrongSwan simulating an on prem VPN gateway.
 

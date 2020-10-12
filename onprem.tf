@@ -1,22 +1,22 @@
 # Create the Azure on prem resource group
 resource "azurerm_resource_group" "azureonpremrg" {
-  name     = "${var.onprem_rg_name}"
-  location = "${var.onprem_rg_location}"
+  name     = var.onprem_rg_name
+  location = var.onprem_rg_location
 }
 
 # Create a Public IP for our VPN Gateway
 resource "azurerm_public_ip" "azureonprempubip" {
   name                         = "azureonprempubip"
-  location                     = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name          = "${azurerm_resource_group.azureonpremrg.name}"
-  public_ip_address_allocation = "Static"
+  location                     = azurerm_resource_group.azureonpremrg.location
+  resource_group_name          = azurerm_resource_group.azureonpremrg.name
+  allocation_method            = "Static"
 }
 
 # Create a Network security Group for our StrongSwan Server
 resource "azurerm_network_security_group" "azureonpremnsg" {
   name                = "azureonpremnsg"
-  location            = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name = "${azurerm_resource_group.azureonpremrg.name}"
+  location            = azurerm_resource_group.azureonpremrg.location
+  resource_group_name = azurerm_resource_group.azureonpremrg.name
 
   security_rule {
     name                       = "Allow_ssh"
@@ -38,7 +38,7 @@ resource "azurerm_network_security_group" "azureonpremnsg" {
     protocol                   = "Udp"
     source_port_range          = "*"
     destination_port_range     = "500"
-    source_address_prefix      = "${data.azurerm_public_ip.azurevpnpubip.ip_address}"
+    source_address_prefix      = data.azurerm_public_ip.azurevpnpubip.ip_address
     destination_address_prefix = "*"
   }
 
@@ -50,78 +50,90 @@ resource "azurerm_network_security_group" "azureonpremnsg" {
     protocol                   = "Udp"
     source_port_range          = "*"
     destination_port_range     = "4500"
-    source_address_prefix      = "${data.azurerm_public_ip.azurevpnpubip.ip_address}"
+    source_address_prefix      = data.azurerm_public_ip.azurevpnpubip.ip_address
     destination_address_prefix = "*"
   }
 
   depends_on = [
-    "data.azurerm_public_ip.azurevpnpubip",
+    data.azurerm_public_ip.azurevpnpubip,
   ]
 }
 
 # Create a virtual network within the on prem resource group
 resource "azurerm_virtual_network" "azureonpremvnet" {
   name                = "azureonpremvnet"
-  address_space       = ["${var.azureonpremvnet_address_space}"]
-  location            = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name = "${azurerm_resource_group.azureonpremrg.name}"
+  address_space       = [var.azureonpremvnet_address_space]
+  location            = azurerm_resource_group.azureonpremrg.location
+  resource_group_name = azurerm_resource_group.azureonpremrg.name
 }
 
 # Create a user defined route to forward traffic to the StrongSwan - no routes will be created here yet
 resource "azurerm_route_table" "azureonpremudrtable" {
   name                          = "azureonpremudrtable"
-  location                      = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name           = "${azurerm_resource_group.azureonpremrg.name}"
+  location                      = azurerm_resource_group.azureonpremrg.location
+  resource_group_name           = azurerm_resource_group.azureonpremrg.name
   disable_bgp_route_propagation = true
 }
 
 # Create the default subnet 
 resource "azurerm_subnet" "azureonpremdefaultsubnet" {
   name                      = "default"
-  resource_group_name       = "${azurerm_resource_group.azureonpremrg.name}"
-  virtual_network_name      = "${azurerm_virtual_network.azureonpremvnet.name}"
-  address_prefix            = "${var.azureonpremvnet_default_subnet}"
-  network_security_group_id = "${azurerm_network_security_group.azureonpremnsg.id}"
-  route_table_id            = "${azurerm_route_table.azureonpremudrtable.id}"
+  resource_group_name       = azurerm_resource_group.azureonpremrg.name
+  virtual_network_name      = azurerm_virtual_network.azureonpremvnet.name
+  address_prefixes          = [var.azureonpremvnet_default_subnet]
 
   depends_on = [
-    "azurerm_route_table.azureonpremudrtable",
+    azurerm_route_table.azureonpremudrtable,
   ]
+}
+
+resource "azurerm_subnet_network_security_group_association" "azureonpremdefaultsubnetnsg" {
+  subnet_id                 = azurerm_subnet.azureonpremdefaultsubnet.id
+  network_security_group_id = azurerm_network_security_group.azureonpremnsg.id
+}
+
+resource "azurerm_subnet_route_table_association" "azureonpremdefaultsubnetrout" {
+  subnet_id      = azurerm_subnet.azureonpremdefaultsubnet.id
+  route_table_id = azurerm_route_table.azureonpremudrtable.id
 }
 
 # Now we are ready to create the route
 resource "azurerm_route" "azureonpremudr" {
   name                   = "azureonpremudrtable"
-  resource_group_name    = "${azurerm_resource_group.azureonpremrg.name}"
-  route_table_name       = "${azurerm_route_table.azureonpremudrtable.name}"
-  address_prefix         = "${var.azurevpnvnet_default_subnet}"
+  resource_group_name    = azurerm_resource_group.azureonpremrg.name
+  route_table_name       = azurerm_route_table.azureonpremudrtable.name
+  address_prefix         = var.azurevpnvnet_default_subnet
   next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = "${azurerm_network_interface.azureonpremstrongswanvmnic.private_ip_address}"
+  next_hop_in_ip_address = azurerm_network_interface.azureonpremstrongswanvmnic.private_ip_address
 }
 
 # Create the Network Interface for the StrongSwan VM
 resource "azurerm_network_interface" "azureonpremstrongswanvmnic" {
   name                      = "${var.azureonprem_strongswan_vm}-nic"
-  location                  = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name       = "${azurerm_resource_group.azureonpremrg.name}"
-  network_security_group_id = "${azurerm_network_security_group.azureonpremnsg.id}"
+  location                  = azurerm_resource_group.azureonpremrg.location
+  resource_group_name       = azurerm_resource_group.azureonpremrg.name
   enable_ip_forwarding      = true
 
   ip_configuration {
     name                          = "azureonpremstrongswanip"
-    subnet_id                     = "${azurerm_subnet.azureonpremdefaultsubnet.id}"
+    subnet_id                     = azurerm_subnet.azureonpremdefaultsubnet.id
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.azureonprempubip.id}"
+    public_ip_address_id          = azurerm_public_ip.azureonprempubip.id
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "azureonpremstrongswanvmnicnsg" {
+  network_interface_id      = azurerm_network_interface.azureonpremstrongswanvmnic.id
+  network_security_group_id = azurerm_network_security_group.azureonpremnsg.id
 }
 
 # Create the Strong Swan VM
 resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
-  name                             = "${var.azureonprem_strongswan_vm}"
-  location                         = "${azurerm_resource_group.azureonpremrg.location}"
-  resource_group_name              = "${azurerm_resource_group.azureonpremrg.name}"
-  network_interface_ids            = ["${azurerm_network_interface.azureonpremstrongswanvmnic.id}"]
-  vm_size                          = "${var.azureonprem_strongswan_vm_size}"
+  name                             = var.azureonprem_strongswan_vm
+  location                         = azurerm_resource_group.azureonpremrg.location
+  resource_group_name              = azurerm_resource_group.azureonpremrg.name
+  network_interface_ids            = [azurerm_network_interface.azureonpremstrongswanvmnic.id]
+  vm_size                          = var.azureonprem_strongswan_vm_size
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
 
@@ -140,8 +152,8 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
   }
 
   os_profile {
-    computer_name  = "${var.azureonprem_strongswan_vm}"
-    admin_username = "${var.azureonprem_vm_username}"
+    computer_name  = var.azureonprem_strongswan_vm
+    admin_username = var.azureonprem_vm_username
   }
 
   os_profile_linux_config {
@@ -149,15 +161,16 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
 
     ssh_keys {
       path     = "/home/${var.azureonprem_vm_username}/.ssh/authorized_keys"
-      key_data = "${var.azureonprem_vm_public_key}"
+      key_data = var.azureonprem_vm_public_key
     }
   }
 
   connection {
     type        = "ssh"
-    user        = "${var.azureonprem_vm_username}"
-    private_key = "${file("${var.azureonprem_vm_private_key}")}"
+    user        = var.azureonprem_vm_username
+    private_key = file("${var.azureonprem_vm_private_key}")
     timeout = "10m"
+    host= azurerm_public_ip.azureonprempubip.ip_address
   }
 
   provisioner "remote-exec" {
@@ -173,12 +186,12 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.strongswanipsecconf.rendered}"
+    content     = data.template_file.strongswanipsecconf.rendered
     destination = "/tmp/ipsec.conf"
   }
 
   provisioner "file" {
-    content     = "${data.template_file.strongswanipsecsecrets.rendered}"
+    content     = data.template_file.strongswanipsecsecrets.rendered
     destination = "/tmp/ipsec.secrets"
   }
 
@@ -200,5 +213,5 @@ resource "azurerm_virtual_machine" "azureonpremstrongswanvm" {
     ]
   }
 
-  depends_on = ["azurerm_network_interface.azureonpremstrongswanvmnic"]
+  depends_on = [azurerm_network_interface.azureonpremstrongswanvmnic]
 }

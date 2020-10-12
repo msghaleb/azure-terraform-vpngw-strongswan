@@ -2,14 +2,14 @@
 data "template_file" "strongswanipsecconf" {
   template = "${file("templates/strongswanipsecconf.tpl")}"
 
-  vars {
+  vars = {
     strongswanleft        = "${azurerm_network_interface.azureonpremstrongswanvmnic.private_ip_address}"
     strongswanleftsubnet  = "${var.azureonpremvnet_default_subnet}"
     strongswanright       = "${data.azurerm_public_ip.azurevpnpubip.ip_address}"
     strongswanrightsubnet = "${var.azurevpnvnet_default_subnet}"
   }
   depends_on = [
-    "data.azurerm_public_ip.azurevpnpubip",
+    data.azurerm_public_ip.azurevpnpubip,
   ]
 }
 
@@ -17,12 +17,12 @@ data "template_file" "strongswanipsecconf" {
 data "template_file" "strongswanipsecsecrets" {
   template = "${file("templates/strongswanipsecsecrets.tpl")}"
 
-  vars {
+  vars = {
     strongswanlocalip   = "${azurerm_network_interface.azureonpremstrongswanvmnic.private_ip_address}"
     azurevpngwpublicip  = "${data.azurerm_public_ip.azurevpnpubip.ip_address}"
     strongswansharedkey = "${var.azurevpn_shared_key}"
   }
   depends_on = [
-    "data.azurerm_public_ip.azurevpnpubip",
+    data.azurerm_public_ip.azurevpnpubip,
   ]
 }

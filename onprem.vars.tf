@@ -2,7 +2,7 @@
 
 variable "onprem_rg_name" {
   description = "Default resource group name that the onprem StrongSwan will be created in."
-  default     = "onprem-rg"
+  default     = "moga-onprem-rg"
 }
 
 variable "onprem_rg_location" {
@@ -22,6 +22,7 @@ variable "azureonpremvnet_address_space" {
 
 variable "azureonpremvnet_default_subnet" {
   description = "The onprem vNET Subnet CIDR"
+  type = string
   default     = "10.3.0.0/24"
 }
 
@@ -37,7 +38,7 @@ variable "azureonprem_vm_username" {
 
 variable "azureonprem_vm_public_key" {
   description = "The public key used to provision your VMs"
-  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDb/x2BIWXTsORCyvh6YvNxP+T43Adux71rOV0Dep63aQvSm21+N8AMrIdSGSlseSdvXwl1CvPgTawkPHq4GeK0xNbljEaKLqHOUGr6ZMIcAhAhE/Y64oku8Vk1op5aG/IUnGZs4Qh17H07nMU/jCac1zJK3O2Bn2dMI9FLzq4gzdwwduKKA8Pt5NQqQJFACVAKGgBWGiSwgQuosa/JlfIY3wtm0kL4Vq9T8hLjIn34/g/mJAhK9P7NwF6Cz2wzphDqdD0y4TlqOq+S50KuEFUfIGcnKMXT2e8y2RBfMWI34HJiyMkdyjFDQRLlNJ/mOZ13uVI6ghCSLeFZp3a6zOxT moghaleb@europe@de-moghaleb2"
+  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCed3Fl1O1kkk00BNDHfCHQ0ysimhIxFPIycD0wizbtlchjyfl3AJHyuHWWL004iI6b7dYiK+/ejRmxkCJP4n7h8cCJCC2gsUblnjLP1xxpRRuqhpwBbc8sDSqVVv1E2nvIUh+paMM2HGkIXqdFdk0mRpV5l0k6sz9Do8rKWU6tU+UJ4/Qrt1D1wqnouCxx5up2n4ZbpupHp4R71fDCEKvnt1fsq198M36pXrq8+z/Y34bmqJMa3x2wrVq60ht3XPsL1RwljPDCE5kxKAaKJ1IQppv8dyKANJbGw2/q82ODOpVB2dzMCzZYTsPo5gEc4vmfyv3/S3GN+zlPIQPdP7rx moghaleb@DE-MOGHALEB"
 }
 
 variable "azureonprem_vm_private_key" {

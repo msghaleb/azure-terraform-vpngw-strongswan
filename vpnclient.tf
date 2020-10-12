@@ -4,26 +4,26 @@ variable "vpnprefix" {
 
 resource "azurerm_resource_group" "vpnrg" {
   name     = "${var.vpnprefix}-resources"
-  location = "${var.vpn_rg_location}"
+  location = var.vpn_rg_location
 }
 
 resource "azurerm_network_interface" "vpnnic" {
   name                = "${var.vpnprefix}-nic"
-  location            = "${azurerm_resource_group.vpnrg.location}"
-  resource_group_name = "${azurerm_resource_group.vpnrg.name}"
+  location            = azurerm_resource_group.vpnrg.location
+  resource_group_name = azurerm_resource_group.vpnrg.name
 
   ip_configuration {
     name                          = "${var.vpnprefix}ip"
-    subnet_id                     = "${azurerm_subnet.azurevpndefaultsubnet.id}"
+    subnet_id                     = azurerm_subnet.azurevpndefaultsubnet.id
     private_ip_address_allocation = "dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "vpnvm" {
   name                             = "${var.vpnprefix}-vm"
-  location                         = "${azurerm_resource_group.vpnrg.location}"
-  resource_group_name              = "${azurerm_resource_group.vpnrg.name}"
-  network_interface_ids            = ["${azurerm_network_interface.vpnnic.id}"]
+  location                         = azurerm_resource_group.vpnrg.location
+  resource_group_name              = azurerm_resource_group.vpnrg.name
+  network_interface_ids            = [azurerm_network_interface.vpnnic.id]
   vm_size                          = "Standard_D2s_v3"
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -52,11 +52,11 @@ resource "azurerm_virtual_machine" "vpnvm" {
 
     ssh_keys {
       path     = "/home/testadmin/.ssh/authorized_keys"
-      key_data = "${var.azureonprem_vm_public_key}"
+      key_data = var.azureonprem_vm_public_key
     }
   }
 
-  tags {
+  tags = {
     environment = "onprem_vm"
   }
 }

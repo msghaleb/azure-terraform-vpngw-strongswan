@@ -2,7 +2,7 @@
 
 variable "vpn_rg_name" {
   description = "Default resource group name that the VPN GW will be created in."
-  default     = "vpn-rg"
+  default     = "moga-azure-vpn-rg"
 }
 
 variable "vpn_rg_location" {

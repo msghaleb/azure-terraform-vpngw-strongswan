@@ -4,26 +4,26 @@ variable "onpremprefix" {
 
 resource "azurerm_resource_group" "onpremrg" {
   name     = "${var.onpremprefix}-resources"
-  location = "${var.onprem_rg_location}"
+  location = var.onprem_rg_location
 }
 
 resource "azurerm_network_interface" "onpremnic" {
   name                = "${var.onpremprefix}-nic"
-  location            = "${azurerm_resource_group.onpremrg.location}"
-  resource_group_name = "${azurerm_resource_group.onpremrg.name}"
+  location            = azurerm_resource_group.onpremrg.location
+  resource_group_name = azurerm_resource_group.onpremrg.name
 
   ip_configuration {
     name                          = "${var.onpremprefix}ip"
-    subnet_id                     = "${azurerm_subnet.azureonpremdefaultsubnet.id}"
+    subnet_id                     = azurerm_subnet.azureonpremdefaultsubnet.id
     private_ip_address_allocation = "dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "onpremvm" {
   name                             = "${var.onpremprefix}-vm"
-  location                         = "${azurerm_resource_group.onpremrg.location}"
-  resource_group_name              = "${azurerm_resource_group.onpremrg.name}"
-  network_interface_ids            = ["${azurerm_network_interface.onpremnic.id}"]
+  location                         = azurerm_resource_group.onpremrg.location
+  resource_group_name              = azurerm_resource_group.onpremrg.name
+  network_interface_ids            = [azurerm_network_interface.onpremnic.id]
   vm_size                          = "Standard_D2s_v3"
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -52,11 +52,11 @@ resource "azurerm_virtual_machine" "onpremvm" {
 
     ssh_keys {
       path     = "/home/testadmin/.ssh/authorized_keys"
-      key_data = "${var.azureonprem_vm_public_key}"
+      key_data = var.azureonprem_vm_public_key
     }
   }
 
-  tags {
+  tags = {
     environment = "onprem_vm"
   }
 }
