@@ -33,7 +33,7 @@ This one will have initially a server to simulate a client behind the StrongSwan
 - Reboot the StrongSwan server ```sudo reboot now```
 - Login to the StrongSwan server and make sure the connection is up ```sudo ipsec status```
 
-> Keey in mind, the username for the StrongSwan is ```strongswanuser``` however the username for the client servers is ```testadmin```
+> Keep in mind, the username for the StrongSwan is ```strongswanuser``` however the username for the client servers is ```testadmin```
 
 - login to one of the clients (you will need to copy the private Key used above) from the StrongSwan server (no public ip), and ping the other one.
 
